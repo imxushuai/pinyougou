@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- 页面meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>商品管理</title>
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
+    <link rel="stylesheet" href="../plugins/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../plugins/adminLTE/css/AdminLTE.css">
+    <link rel="stylesheet" href="../plugins/adminLTE/css/skins/_all-skins.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="../plugins/jQuery/jquery-2.2.3.min.js"></script>
+    <script src="../plugins/bootstrap/js/bootstrap.min.js"></script>
+
+    <!-- angular js -->
+    <script type="text/javascript" src="../plugins/angularjs/angular.min.js"></script>
+    <!-- 分页组件 -->
+    <script src="../plugins/angularjs/pagination.js"></script>
+    <link rel="stylesheet" href="../plugins/angularjs/pagination.css">
+    <!-- 自定义相关js -->
+    <script src="../js/base_pagination.js"></script>
+    <script src="../js/service/goodsService.js"></script>
+    <script src="../js/service/itemCatService.js"></script>
+    <script src="../js/service/brandService.js"></script>
+    <script src="../js/controller/baseController.js"></script>
+    <script src="../js/controller/goodsController.js"></script>
+
+</head>
+
+<body class="hold-transition skin-red sidebar-mini" ng-app="pinyougou" ng-controller="goodsController"
+      ng-init="searchEntity={auditStatus:0};findItemCatList()">
+<!-- .box-body -->
+
+<div class="box-header with-border">
+    <h3 class="box-title">商品审核</h3>
+</div>
+
+<div class="box-body">
+
+    <!-- 数据表格 -->
+    <div class="table-box">
+
+        <!--工具栏-->
+        <div class="pull-left">
+            <div class="form-group form-inline">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-default" title="删除" ng-click="dele()">
+                        <i class="fa fa-trash-o"></i> 删除
+                    </button>
+                    <button type="button" class="btn btn-default" title="审核通过" ng-click="updateStatus(1)">
+                        <i class="fa fa-check"></i> 审核通过
+                    </button>
+                    <button type="button" class="btn btn-default" title="驳回" ng-click="updateStatus(2)">
+                        <i class="fa fa-ban"></i> 驳回
+                    </button>
+                    <button type="button" class="btn btn-default" title="刷新"><i class="fa fa-refresh"></i> 刷新</button>
+                </div>
+            </div>
+        </div>
+        <div class="box-tools pull-right">
+            <div class="has-feedback">
+                商品名称：<input>
+                <button class="btn btn-default">查询</button>
+            </div>
+        </div>
+        <!--工具栏/-->
+
+        <!--数据列表-->
+        <table id="dataList" class="table table-bordered table-striped table-hover dataTable">
+            <thead>
+            <tr>
+                <th class="" style="padding-right:0px">
+                    <input id="selall" type="checkbox" class="icheckbox_square-blue">
+                </th>
+                <th class="sorting_asc">商品ID</th>
+                <th class="sorting">商品名称</th>
+                <th class="sorting">商品价格</th>
+                <th class="sorting">一级分类</th>
+                <th class="sorting">二级分类</th>
+                <th class="sorting">三级分类</th>
+                <th class="sorting">状态</th>
+                <th class="text-center">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="entity in list">
+                <td><input type="checkbox" ng-click="updateSelection($event,entity.id)"></td>
+                <td>{{entity.id}}</td>
+                <td>{{entity.goodsName}}</td>
+                <td>{{entity.price}}</td>
+                <td>{{itemCatList[entity.category1Id]}}</td>
+                <td>{{itemCatList[entity.category2Id]}}</td>
+                <td>{{itemCatList[entity.category3Id]}}</td>
+                <td>
+                    {{status[entity.auditStatus]}}
+                </td>
+                <td class="text-center">
+                    <button data-toggle="modal" data-target="#editModal" ng-click="findOne(entity.id)" class="btn bg-olive btn-xs">详情</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <!--数据列表/-->
+        <!-- 分页 -->
+        <tm-pagination conf="paginationConf"></tm-pagination>
+
+    </div>
+    <!-- 数据表格 /-->
+
+</div>
+<!-- /.box-body -->
+
+<!-- 编辑窗口 -->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"
+    style="width: 70%;height: 85%;margin: 50px auto">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3 id="myModalLabel">商品详情</h3>
+            </div>
+            <div class="nav-tabs-custom">
+
+                <!--tab头-->
+                <ul class="nav nav-tabs">
+                    <li class="active">
+                        <a href="#home" data-toggle="tab">商品基本信息</a>
+                    </li>
+                    <li>
+                        <a href="#pic_upload" data-toggle="tab">商品图片</a>
+                    </li>
+                    <li>
+                        <a href="#customAttribute" data-toggle="tab">扩展属性</a>
+                    </li>
+                </ul>
+                <!--tab头/-->
+
+                <!--tab内容-->
+                <div class="tab-content">
+
+                    <!--表单内容-->
+                    <div class="tab-pane active" id="home">
+                        <div class="row data-type">
+                            <div class="col-md-2 title">商品分类</div>
+
+                            <div class="col-md-10 data">
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <span class="form-control">{{itemCatList[entity.goods.category1Id]}}</span>
+                                        </td>
+                                        <td>
+                                            <span class="form-control">{{itemCatList[entity.goods.category2Id]}}</span>
+                                        </td>
+                                        <td>
+                                            <span class="form-control">{{itemCatList[entity.goods.category3Id]}}</span>
+                                        </td>
+                                        <td>
+                                            模板ID:{{entity.goods.typeTemplateId}}
+                                        </td>
+                                    </tr>
+                                </table>
+
+                            </div>
+
+
+                            <div class="col-md-2 title">商品名称</div>
+                            <div class="col-md-10 data">
+                                <span class="form-control">{{entity.goods.goodsName}}</span>
+                            </div>
+
+                            <div class="col-md-2 title">品牌</div>
+                            <div class="col-md-10 data">
+                                <span class="form-control">{{brandName}}</span>
+                            </div>
+
+                            <div class="col-md-2 title">副标题</div>
+                            <div class="col-md-10 data">
+                                <span class="form-control">{{entity.goods.caption}}</span>
+                            </div>
+
+                            <div class="col-md-2 title">价格</div>
+                            <div class="col-md-10 data">
+                                <div class="input-group">
+                                    <span class="input-group-addon">¥</span>
+                                    <span class="form-control">{{entity.goods.price}}</span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-2 title rowHeight2x">包装列表</div>
+                            <div class="col-md-10 data rowHeight2x">
+
+                            <textarea rows="4" class="form-control" disabled ng-model="entity.goodsDesc.packageList"
+                                      placeholder="包装列表"></textarea>
+                            </div>
+
+                            <div class="col-md-2 title rowHeight2x">售后服务</div>
+                            <div class="col-md-10 data rowHeight2x">
+                            <textarea rows="4" class="form-control" disabled ng-model="entity.goodsDesc.saleService"
+                                      placeholder="售后服务"></textarea>
+                            </div>
+
+
+                        </div>
+                    </div>
+
+                    <!--图片上传-->
+                    <div class="tab-pane" id="pic_upload">
+                        <div class="row data-type">
+                            <table class="table table-bordered table-striped table-hover dataTable">
+                                <thead>
+                                <tr>
+
+                                    <th class="sorting">颜色</th>
+                                    <th class="sorting">图片</th>
+                                </thead>
+                                <tbody>
+                                <tr ng-repeat="pojo in entity.goodsDesc.itemImages">
+                                    <td>
+                                        {{pojo.color}}
+                                    </td>
+                                    <td>
+                                        <img alt="" src="{{pojo.url}}" width="100px" height="100px">
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </div>
+
+
+                    <!--扩展属性-->
+                    <div class="tab-pane" id="customAttribute">
+                        <div class="row data-type">
+                            <div ng-repeat="attr in entity.goodsDesc.customAttributeItems">
+                                <div class="col-md-2 title">{{attr.text}}</div>
+                                <div class="col-md-10 data">
+                                    <span class="form-control" >{{attr.value}}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <!--tab内容/-->
+                <!--表单内容/-->
+
+            </div>
+        </div>
+
+</body>
+
+</html>
