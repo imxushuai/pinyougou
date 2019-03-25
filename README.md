@@ -1,10 +1,16 @@
 # pinyougou
 
+## 项目依赖库
+
+**maven库**
+
+链接：https://pan.baidu.com/s/1WfND9wdbeqPOLhmQ6CYvlg 
+提取码：u8pa 
+
 ## 本仓库目录介绍
 
 - 根目录
   - sql：存放sql文件
-  - repository：存放本项目需要用的依赖
   - asset：存放README文件用到的图片（不用理会）
 
 > 其他目录均为代码目录
